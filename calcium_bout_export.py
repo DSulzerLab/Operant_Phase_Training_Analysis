@@ -1,7 +1,7 @@
 from pathlib import Path
 import pandas as pd
 
-from phase_utils import filter_range, lick_reward_split
+from phase_utils import filter_range
 
 # Export calcium data corresponding to individual bouts 
 def main(arduino_stats: Path, sheet: str, calcium: Path):
@@ -23,7 +23,7 @@ def main(arduino_stats: Path, sheet: str, calcium: Path):
 
         # Get calcium data for specific bout 
         # Include 0.5s before and 0.5s after
-        bout_calcium = filter_range(trial_calcium, [bout['Start'] - 500, bout['End'] + 500])
+        bout_calcium = filter_range(trial_calcium, [bout['Start'] - 0.5, bout['End'] + 0.5])
 
         # Export to separate Excel sheet
         bout_calcium.reset_index().to_excel(writer, sheet_name = f'Bout {index + 1}', index = False)

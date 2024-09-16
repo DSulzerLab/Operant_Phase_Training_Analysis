@@ -14,13 +14,6 @@ def lick_bout_plot(arduino: Path, arduino_stats: Path, sheet: str, calcium: Path
     mouse_stats = pd.read_excel(arduino_stats, sheet_name = f'{sheet} Bouts')
     calcium_data = pd.read_excel(calcium, sheet_name = None, index_col = 'Time')
 
-    # Convert time index into seconds for easier plotting
-    arduino_data.index /= 1000
-    for trial in calcium_data:
-        calcium_data[trial].index /= 1000
-    mouse_stats["Start"] /= 1000
-    mouse_stats["End"] /= 1000
-
     # Get licks and rewards
     licks = arduino_data['# of Licks'].dropna()
     rewards = arduino_data['Reward'].dropna()
@@ -34,12 +27,12 @@ def lick_bout_plot(arduino: Path, arduino_stats: Path, sheet: str, calcium: Path
     output_dir.mkdir(parents = True, exist_ok = True)
 
     # Get maximum point in calcium data
-    max_calcium = np.max([calcium_data[trial]['Values'].max() for trial in calcium_data])
+    max_calcium = np.max([calcium_data[trial].squeeze().values.max() for trial in calcium_data])
 
     # For each bout
     for index, bout in mouse_stats.iterrows():
         # Retrieve corresponding calcium data for bout
-        bout_calcium = calcium_data[f'Bout {index + 1}']
+        bout_calcium = calcium_data[f'Bout {index + 1}'].squeeze()
 
         # Ensure at least 0.5s of data is available
         start = bout['Start']
@@ -54,7 +47,7 @@ def lick_bout_plot(arduino: Path, arduino_stats: Path, sheet: str, calcium: Path
 
         # Plot calcium
         plt.figure()
-        plt.plot(time, bout_calcium['Values'], color = '#218BFF')
+        plt.plot(time, bout_calcium.values, color = '#218BFF')
 
         # Mark licks (if any)
         plt.scatter(licks_rewarded_bout.index - start, np.ones(licks_rewarded_bout.shape[0]) * max_calcium + 0.5, marker = '|', color = '#DD7815', label = 'Rewarding Licks')
@@ -77,13 +70,6 @@ def lick_bout_scatter(arduino: Path, arduino_stats: Path, sheet: str, calcium: P
     arduino_data = pd.read_excel(arduino, index_col = 'Time', sheet_name = sheet)
     mouse_stats = pd.read_excel(arduino_stats, sheet_name = f'{sheet} Bouts')
     calcium_data = pd.read_excel(calcium, sheet_name = None, index_col = 'Time')
-
-    # Convert time index into seconds for easier plotting
-    arduino_data.index /= 1000
-    for trial in calcium_data:
-        calcium_data[trial].index /= 1000
-    mouse_stats["Start"] /= 1000
-    mouse_stats["End"] /= 1000
 
     # Set up output directories
     dir_tree = '/'.join(arduino_stats.parts[1:-1])

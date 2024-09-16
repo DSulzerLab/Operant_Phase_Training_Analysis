@@ -10,15 +10,7 @@ def main(arduino: Path, sheet: str, calcium: Path):
     arduino_data = pd.read_excel(arduino, index_col = 'Time', sheet_name = sheet)
     calcium_data = pd.read_csv(calcium, index_col = 'Time')
     
-    # Convert calcium time into milliseconds
-    calcium_data.index *= 1000
-    calcium_data.index = calcium_data.index.astype(int)
-    calcium_data = calcium_data.sort_index()
-
-    # Offset calcium start time by Arduino start time
     # NOTE: better approach is needed (i.e. synchronizing by CUE ON or REWARD)
-    calcium_data.index += arduino_data.index[0]
-
     # Create Excel file for calcium data
     dir_tree = list(calcium.parts)
     dir_tree[0] = 'parsed_data'

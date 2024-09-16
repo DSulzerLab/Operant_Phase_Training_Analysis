@@ -7,7 +7,7 @@ from phase_utils import filter_range
 
 # Apply low-pass filter to smooth calcium data
 def lowpass_filter(bout_calcium_data: np.ndarray, time: np.ndarray):
-    elapsed_time = (time[-1] - time[0]) / 1000
+    elapsed_time = time[-1] - time[0]
     sr = int(bout_calcium_data.shape[0] / elapsed_time)
     b, a = signal.butter(2, 2, fs = sr)
     bout_calcium_filtered = signal.filtfilt(b, a, bout_calcium_data)
@@ -22,13 +22,12 @@ def bout_auc(bout_calcium_data: np.ndarray, time: np.ndarray):
     return auc
 
 # Compute pre-bout calcium slope
-def bout_slope(bout_calcium: pd.DataFrame, bout: pd.DataFrame):
+def bout_slope(bout_calcium: pd.Series, bout: pd.DataFrame):
     # Adjust time index
     bout_calcium_adjusted = bout_calcium.copy()
-    bout_calcium_adjusted.index /= 1000
 
-    pre_bout_calcium = filter_range(bout_calcium_adjusted, [bout['Start'] / 1000 - 0.5, bout['Start'] / 1000])
-    pre_bout_rise = pre_bout_calcium['Values'].iloc[-1] - pre_bout_calcium['Values'].iloc[0]
+    pre_bout_calcium = filter_range(bout_calcium_adjusted, [bout['Start'] - 0.5, bout['Start']])
+    pre_bout_rise = pre_bout_calcium.values[-1] - pre_bout_calcium.values[0]
     pre_bout_rate = pre_bout_calcium.index[-1] - pre_bout_calcium.index[0]
     return pre_bout_rise / pre_bout_rate
 
@@ -37,15 +36,14 @@ def exp_curve(t, A, B, C):
     return A * np.exp(B * t) + C
 
 # Compute pre-bout calcium exponential rise/decay rate
-def bout_exprate(bout_calcium: pd.DataFrame, bout: pd.DataFrame):
+def bout_exprate(bout_calcium: pd.Series, bout: pd.DataFrame):
     # Adjust time index
     bout_calcium_adjusted = bout_calcium.copy()
-    bout_calcium_adjusted.index /= 1000
 
-    pre_bout_calcium = filter_range(bout_calcium_adjusted, [bout['Start'] / 1000 - 0.5, bout['Start'] / 1000])
+    pre_bout_calcium = filter_range(bout_calcium_adjusted, [bout['Start'] - 0.5, bout['Start']])
     t = pre_bout_calcium.index.to_numpy()
     t -= t[0]
-    y = pre_bout_calcium['Values'].to_numpy()
+    y = pre_bout_calcium.values
     params, _ = optimize.curve_fit(exp_curve, t, y, maxfev=10000)
     A, B, C = params
     return B
@@ -58,7 +56,7 @@ def bout_t_onehalf(bout_calcium_data: np.ndarray, time: np.ndarray):
 
     # Filter calcium that comes after max point
     y = bout_calcium_filtered[np.argmax(bout_calcium_filtered):]
-    t = time[np.argmax(bout_calcium_filtered):] / 1000
+    t = time[np.argmax(bout_calcium_filtered):]
     t -= t[0]
 
     # Compute exponential decay factor
@@ -92,8 +90,8 @@ def main(arduino_stats: Path, sheet: str, calcium: Path):
     }
     for index, bout in mouse_stats.iterrows():
         # Retrieve corresponding calcium data for bout
-        bout_calcium = calcium_data[f'Bout {index + 1}']
-        bout_calcium_data = bout_calcium['Values'].to_numpy()
+        bout_calcium = calcium_data[f'Bout {index + 1}'].squeeze()
+        bout_calcium_data = bout_calcium.values
         bout_time = bout_calcium.index.to_numpy()
 
         # Compute metrics

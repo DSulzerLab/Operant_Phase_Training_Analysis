@@ -105,18 +105,26 @@ def parse_data(path: Path):
                             parsed_data['Reward'].append('TRUE')
                             keys.remove('Reward')
             
+            # Add blank values for pending keys (if any)
+            for key in keys:
+                parsed_data[key].append('')
+            
             # Add extra 0 to sheet name in front of day if it's not there
             frame_name_split = frame_name.split('-')
             if frame_name_split[-1][0] != '0':
                 frame_name_split[-1] = f'0{frame_name_split[-1]}'
             updated_frame_name = '-'.join(frame_name_split)
 
-            # Export parsed DataFrame
-            for key in keys:
-                parsed_data[key].append('')
+            # Create parsed DataFrame
             parsed_frame = pd.DataFrame(parsed_data)
             if 'phase 1' in file_name.parts:
                 parsed_frame.drop(columns = ['Force', 'Lever Press'], inplace = True)
+
+            # Convert time scale from milliseconds to seconds and offset start to 0
+            parsed_frame['Time'] /= 1000
+            parsed_frame['Time'] -= parsed_frame['Time'][0]
+            
+            # Export parsed DataFrame
             parsed_frame.to_excel(writer, sheet_name = updated_frame_name, index = False)
     
     # Close excel writer

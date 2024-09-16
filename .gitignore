@@ -1,3 +1,6 @@
+# Cache
+__pycache__/
+
 # Results
 original_data/
 parsed_data/

@@ -80,7 +80,8 @@ def latency_to_first_lick(
     time: int | None = None,
     trials: pd.Series | None = None, 
     presses: pd.Series | None = None,
-    time_range: list[float] | None = None
+    time_range: list[float] | None = None,
+    milliseconds: bool = True
 ):
     # Filter by time range
     licks_rewarded = filter_range(licks_rewarded, time_range)
@@ -117,6 +118,10 @@ def latency_to_first_lick(
                 start_press = presses.index[0]
                 latency = first_lick - start_press
     
+    # Convert latency from seconds into milliseconds if needed
+    if milliseconds and latency != 'N/A':
+        latency *= 1000
+    
     return latency
 
 # Given presses and cues
@@ -125,7 +130,8 @@ def latency_to_first_press(
     presses: pd.Series,
     time: int | None = None,
     cues: pd.Series | None = None,
-    time_range: list[float] | None = None
+    time_range: list[float] | None = None,
+    milliseconds: bool = True
 ):
     # Filter by time range
     presses = filter_range(presses, time_range)
@@ -147,6 +153,10 @@ def latency_to_first_press(
             start_time = cues.index[0]
             latency = first_press - start_time
     
+    # Convert latency from seconds into milliseconds if needed
+    if milliseconds and latency != 'N/A':
+        latency *= 1000
+
     return latency
 
 # Given list of licks and rewards
@@ -168,7 +178,7 @@ def lick_reward_split(rewards: pd.Series, licks: pd.Series):
 
 # Given list of presses and licks
 # compute licks that are within reward period (denoted by threshold)
-def lick_press_split(presses: pd.Series, licks: pd.Series, threshold: int = 5000):
+def lick_press_split(presses: pd.Series, licks: pd.Series, threshold: int = 5):
     # Get time indices
     press_times = presses.index
     lick_times = licks.index

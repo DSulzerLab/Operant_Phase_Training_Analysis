@@ -150,7 +150,7 @@ def phase3(data: pd.DataFrame, mode: str):
     if mode == 'reward':
         rewards = data['Reward'].dropna()
         # Remove rewards that are printed with presses
-        press_reward = [x for x in rewards.index if np.min(np.abs(presses.index - x)) < 5]
+        press_reward = [x for x in rewards.index if np.min(np.abs(presses.index - x)) < 0.005]
         rewards = rewards.loc[rewards.index.difference(press_reward)]
         licks_rewarded, licks_not_rewarded = lick_reward_split(rewards, licks)
     elif mode == 'time':
@@ -215,9 +215,8 @@ def lick_bouts(licks: pd.Series, licks_rewarded: pd.Series, trials_start: pd.Ser
         # Compute difference between each lick time
         # Use threshold to split into lick bouts
         if trial_licks.shape[0] > 0:
-            threshold_ms = threshold * 1000
             time_diff = np.diff(trial_licks.index)
-            trial_lick_bouts = np.split(trial_licks.index, np.where(time_diff > threshold_ms)[0] + 1)
+            trial_lick_bouts = np.split(trial_licks.index, np.where(time_diff > threshold)[0] + 1)
             
             # Add record for lick bouts
             for bout in trial_lick_bouts:
@@ -238,7 +237,7 @@ def lick_bouts(licks: pd.Series, licks_rewarded: pd.Series, trials_start: pd.Ser
                 if bout_duration > 0:
                     bout_lick_times = bout_licks.index.to_series()
                     bout_time_diff = np.diff(bout_lick_times)
-                    bout_lick_efficiency = (bout_time_diff <= 150).sum() / bout_time_diff.shape[0]
+                    bout_lick_efficiency = (bout_time_diff <= 0.15).sum() / bout_time_diff.shape[0]
                 else:
                     bout_lick_efficiency = 0
 
