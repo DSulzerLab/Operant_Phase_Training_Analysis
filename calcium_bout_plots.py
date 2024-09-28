@@ -60,10 +60,6 @@ def lick_bout_plot(arduino: Path, arduino_stats: Path, sheet: str, calcium: Path
         plt.savefig(output_dir / f'bout{index}.png', dpi = 600)
         plt.close()
 
-# Simple function to model an exponential curve
-def exp_curve(t, A, B, C):
-    return A * np.exp(B * t) + C
-
 # Scatter plot of # of licks against max peak amplitude of calcium
 def lick_bout_scatter(arduino: Path, arduino_stats: Path, sheet: str, calcium: Path):
     # Import bout statistics and calcium data

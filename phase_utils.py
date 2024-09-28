@@ -81,7 +81,7 @@ def latency_to_first_lick(
     trials: pd.Series | None = None, 
     presses: pd.Series | None = None,
     time_range: list[float] | None = None,
-    milliseconds: bool = True
+    milliseconds: bool = False
 ):
     # Filter by time range
     licks_rewarded = filter_range(licks_rewarded, time_range)
@@ -131,7 +131,7 @@ def latency_to_first_press(
     time: int | None = None,
     cues: pd.Series | None = None,
     time_range: list[float] | None = None,
-    milliseconds: bool = True
+    milliseconds: bool = False
 ):
     # Filter by time range
     presses = filter_range(presses, time_range)
